@@ -103,7 +103,7 @@ CITES_Vert <- left_join(CITES_Vert, WOE_Factors_all, by = c("Class", "Term")) %>
   mutate(Factor = ifelse(is.na(Factor.y), Factor.x, Factor.y)) %>%
   select(-Factor.x, -Factor.y)
 
-## Calculate WOEs - you take the quanity traded multipled by conversion term.
+## Calculate WOEs - you take the quantity traded multiplied by conversion term.
 CITES_Vert <- CITES_Vert %>% mutate(WOE = Factor*Quantity)
 
 ## Note only consider records where the unit is NA.This is important nuance as well as terms CITES trade is in various forms of unit
@@ -115,10 +115,10 @@ left_join(
   mutate(Prop = Converted/n)
 
 ## only keep the NA unit and the woes with a value
-## This reduces the data from 3.7m to 3.0m
+## This reduces the data to 1.5 million
 CITES_Vert <- CITES_Vert %>% filter(is.na(Unit)|Unit == "Number of specimens", !is.na(WOE))
 
-## In total 434,296,150 vert WOEs moved since the stard of CITES (all sources codes and purposes)
+## In total 294,024,923 vert WOEs moved since the stard of CITES (Commericial, Captive and wild trade and purposes)
 sum(na.omit(CITES_Vert$WOE))
 
 ## Figure shows the values for 2021 and 2022 are clearly incomplete.
@@ -134,7 +134,7 @@ CITES_Vert %>% group_by(Year) %>% tally() %>%
   theme_classic(base_size = 14) + 
   theme(axis.text = element_text(angle = 45, hjust = 1, vjust = -1))
 
-## Trim the data to our time frame - change if different time frame is needed.
+## Trim the data to our time frame - change if different time frame is needed. (1.2 million)
 CITES_Vert <- CITES_Vert %>% filter(Year %in% c(1999:2020))
 
 #### Importer or Exporter #####
@@ -147,15 +147,14 @@ CITES_Vert %>% group_by(Reporter.type) %>% tally()
 #### Original listing ####
 
 ## extract species in trade taxonomic information
-## 1227 species in both Imp and Exp reported data sets
+## 1864 species in both Imp and Exp reported data sets
 (CITES_Species <- CITES_Vert %>% filter(Year %in% c(2000:2020), !grepl("spp", Taxon), !grepl("hybrid", Taxon),
-                                        !Appendix == "N",
-                                      WildSource == "Yes", PurposeC == "Commercial", WOE >0) %>%
+                                        !Appendix == "N", WOE >0) %>%
                                       group_by(Taxon) %>% slice(1) %>% select(Class, Order, Family, Genus, Taxon) %>% ungroup()) 
 
+## 1.0 million
 CITES_Vert <- CITES_Vert %>% filter(Year %in% c(2000:2020), !grepl("spp", Taxon), !grepl("hybrid", Taxon),
-                                    !Appendix == "N",
-                      WildSource == "Yes", PurposeC == "Commercial", WOE >0) 
+                                    !Appendix == "N", WOE >0) 
 
 ## This may or may not be relevant to you - I needed this to make individual species time series e.g. if a species was traded yearly 2000 - 2010
 ## but not after 2010 I needed to add these years and fill the volumes with 0 (not traded - cites doesnt do this its only a record of trade that 
@@ -165,7 +164,7 @@ CITES_Vert <- CITES_Vert %>% filter(Year %in% c(2000:2020), !grepl("spp", Taxon)
 ## that.
 
 ## Read in the cites historic listings data
-Historic_CITES <- data.table::fread("Data/CITES/History_of_CITES_Listings_2021.csv") %>% 
+Historic_CITES <- data.table::fread("Data/History_of_CITES_Listings_2021.csv") %>% 
   mutate(Year = format(as.Date(EffectiveAt, format="%d/%m/%Y"),"%Y"))
 
 ## Get the unique listings from the listing data/
@@ -182,14 +181,14 @@ FL_SP <- First_listing %>% filter(!is.na(Taxon)) %>% select(Taxon, Year)
 
 Sp_join <- left_join(CITES_Species, FL_SP, by = "Taxon")
 
-sp_done <- Sp_join %>% filter(!is.na(Year)) ## 526 perfect matches
+sp_done <- Sp_join %>% filter(!is.na(Year)) ## 768 perfect matches
 
 ## Second match at genus level
 genus_to_match <- Sp_join %>% filter(is.na(Year)) %>% select(-Year)
 ## get all the genus level appendix listings
 FL_Genus <- First_listing %>% filter(is.na(Taxon), !is.na(Genus)) %>% select(Genus, Year) ## 217 listings
 Genus_join <- left_join(genus_to_match, FL_Genus, by = "Genus")
-Genus_done <- Genus_join %>% filter(!is.na(Year)) ## 308 perfect matches
+Genus_done <- Genus_join %>% filter(!is.na(Year)) ## 496 perfect matches
 
 
 ## third match at family level
@@ -197,20 +196,20 @@ Genus_done <- Genus_join %>% filter(!is.na(Year)) ## 308 perfect matches
 FL_Family <- First_listing %>% filter(is.na(Taxon), is.na(Genus), !is.na(Family)) %>% select(Family, Year)
 Fam_to_match <- Genus_join %>% filter(is.na(Year)) %>% select(-Year)
 Fam_join <- left_join(Fam_to_match, FL_Family, by = "Family")
-Fam_done <- Fam_join %>% filter(!is.na(Year)) ## 302 perfect matches
+Fam_done <- Fam_join %>% filter(!is.na(Year)) ## 435 perfect matches
 
 ## Fourth match at order level
 FL_Order <- First_listing %>% filter(is.na(Taxon), is.na(Genus), is.na(Family), !is.na(Order)) %>% select(Order, Year)
-Order_to_match <- Fam_join %>% filter(is.na(Year)) %>% select(-Year) ## 56 to still match
+Order_to_match <- Fam_join %>% filter(is.na(Year)) %>% select(-Year) ## 165 to still match
 Order_join <- left_join(Order_to_match, FL_Order, by = "Order")
-Order_done <- Order_join %>% filter(!is.na(Year)) ## 81 perfect matches
+Order_done <- Order_join %>% filter(!is.na(Year)) ## 150 perfect matches
 
 All_sp_fl <- rbind(sp_done,Genus_done,Fam_done, Order_done)
 
 All_sp_fl %>% filter(Year >1999)
 
 #### Attach species FL to CITES db ####
-FL_CITES_Species <- All_sp_fl %>% rename(FL_year = Year) %>% select(Taxon, FL_year) ## 1217 sp
+FL_CITES_Species <- All_sp_fl %>% rename(FL_year = Year) %>% select(Taxon, FL_year) ## 1849 sp
 
 CITES_Vert <- left_join(CITES_Vert, FL_CITES_Species, by = "Taxon")
 check <- CITES_Vert %>% filter(is.na(FL_year))
@@ -219,14 +218,20 @@ unique(check$Taxon)
 CITES_Vert <- CITES_Vert %>% mutate(FL_year = case_when(Taxon == "Lontra canadensis" ~ 1977, 
                                           Taxon == "Nasua nasua" ~ 1977,
                                           Taxon == "Vulpes vulpes" ~ 1989,
-                                          Taxon == "Damaliscus pygargus" ~ 1975,
-                                          Taxon == "Hydrictis maculicollis" ~ 1977,
+                                          Taxon == "Crotalus willardi" ~ 9999, # Not listed as per Species+ and CITES Checklist
                                           Taxon == "Equus zebra" ~ 1975,
+                                          Taxon == "Crotalus durissus unicolor" ~ 1987,
+                                          Taxon == "Hydrictis maculicollis" ~ 1977,
+                                          Taxon == "Damaliscus pygargus" ~ 1975,
                                           Taxon == "Ovis cycloceros arkal" ~ 2000,
+                                          Taxon == "Poephila cincta" ~ 9999, # Only ssp Poephila cincta cincta listed
                                           Taxon == "Mustela erminea" ~ 1989,
+                                          Taxon == "Enhydra lutris" ~ 1977,
+                                          Taxon == "Capra falconeri heptneri" ~ 1975,
                                           Taxon == "Hippotragus niger" ~ 1975,
-                                          Taxon == "Enhydra lutris" ~ 1975,
-                                          TRUE ~ as.numeric(FL_year)))
+                                          Taxon == "Lophura hatinhensis" ~ 1975,
+                                          TRUE ~ as.numeric(FL_year))) %>%
+  filter(FL_year != 9999) %>% mutate(Taxon = ifelse(Taxon == "Lophura hatinhensis", "Lophura edwardsi", Taxon))
 
 #### Remove CITES Deletion ####
 
@@ -240,24 +245,21 @@ CITES_Deletions <- Historic_CITES %>% filter(ChangeType == "DELETION" & IsCurren
   group_by(Taxon) %>% arrange(Taxon, Year_DEL) %>% slice_max(Year_DEL)
 
 Del_sp <- CITES_Deletions$Taxon
-CITES_Vert %>% filter(Taxon %in% Del_sp) %>% summarise(n = (unique(Taxon))) ## 118 speices
+CITES_Vert %>% filter(Taxon %in% Del_sp) %>% summarise(n = (unique(Taxon))) ## 129 speices
 
 ## Add the deletions to the trade database as a separate year of deletion collumn.
 ## Later we will use this as an end point for all these series.
 ## All other species that had not been deleted will have full time series to 2018, therefore we can add the
 ## final year (2018) to the species without a deletion year.
-CITES_Vert <- left_join(CITES_Vert, CITES_Deletions, by = "Taxon") %>%
-  mutate(Year_DEL = ifelse(is.na(Year_DEL), 2020, Year_DEL))
+CITES_Clean <- left_join(CITES_Vert, CITES_Deletions, by = "Taxon") %>%
+  mutate(Year_DEL = ifelse(is.na(Year_DEL), 2020, Year_DEL)) %>%
+  mutate(Live = ifelse(Term == "live", "Live", "Not live"),
+         Importer = ifelse(Importer == "NA", "NAM", Importer), ## For the NA namibia issue
+         Exporter = ifelse(Exporter == "NA", "NAM", Exporter),
+         Origin = ifelse(Origin == "NA", "NAM", Origin))
 
-
-
-## totals of woes for different classes
-(CITES_Vert %>% filter( Year %in% c(2000:2020), !grepl("spp", Taxon), 
-                      WildSource == "Yes", PurposeC == "Commercial", WOE >0) %>%
-  group_by(Class) %>% tally(WOE))
-
-write.csv(CITES_Vert, "Data/All_Vertebrates/CITES_Vert_Raw.csv", na = "")
-
+write_rds(CITES_Clean, "Data/1_Output_CITES_Raw.rds",)
+write.csv(CITES_Clean, "Data/1_Output_CITES_Raw.csv", na = "")
 
 
 
