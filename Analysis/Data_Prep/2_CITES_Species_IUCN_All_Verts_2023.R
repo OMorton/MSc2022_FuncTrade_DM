@@ -1,11 +1,15 @@
 
+# setwd("G:/My Drive/TUoS/Teaching/Masters/2022/Dom_Meeks/Project")
+.libPaths("C:/Packages")
+
 library(rredlist)
+library(tidyverse)
 
-CITES_Vert <- data.table::fread("Data/All_Vertebrates/CITES_Vert_Raw.csv", na.strings = "")
+CITES_Vert <- data.table::fread("Data/1_Output_CITES_Raw.csv", na.strings = "")
 
-## 1227 species in both Importer and Exported Data
+## 1861 species in both Importer and Exported Data (3 less than 1_CITES... as hatinesis merged with edwardsii and 2 unlisted species removed)
 Sp_List <- CITES_Vert %>% group_by(Taxon) %>% tally() %>% select(Taxon) %>% as.data.frame()
-CITES_Vert %>% filter(Year > 1999) %>% group_by(WildSource) %>% summarise(n_distinct(Taxon))
+CITES_Vert %>% filter(Year > 1999) %>% group_by(Source_clean, Live) %>% summarise(n_distinct(Taxon))
 
 
 ##  1 domestic species.
@@ -250,8 +254,8 @@ for(i in 1:nrow(NA_update)){ # would have used for(sp in speciesList) but need i
 }
 
 ## write out the the data for speed.
-#write.csv(df, "Data/All_Vertebrates/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv")  
-df <- read.csv("Data/All_Vertebrates/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv") %>% select(-X)
+write.csv(df, "Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv")  
+df <- read.csv("Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv") %>% select(-X)
 
 ## 15 NA species (this is as expected as per the totals above)
 df %>% filter(is.na(Year))
