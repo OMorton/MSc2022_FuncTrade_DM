@@ -18,15 +18,24 @@ CITES_Vert %>% filter(Year > 1999) %>% group_by(Source_clean, Live) %>% summaris
 NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" ~ "Rhyticeros cassidix",
                                                      Taxon == "Aceros corrugatus" ~"Rhabdotorrhinus corrugatus",
                                                      Taxon == "Aceros leucocephalus" ~ "Rhabdotorrhinus leucocephalus",
+                                                     Taxon == "Aceros waldeni" ~ "Rhabdotorrhinus waldeni",
                                                      Taxon == "Aglaiocercus kingi" ~ "Aglaiocercus kingii",
                                                      Taxon == "Alisterus chloropterus mozskowskii" ~ "Alisterus chloropterus",
+                                                     Taxon == "Amazilia amazilia" ~ "Amazilis amazilia",
+                                                     Taxon == "Amazilia cyanocephala" ~ "Saucerottia cyanocephala",
+                                                     Taxon == "Amazilia chionogaster" ~ "Elliotomyia chionogaster",
+                                                     Taxon == "Amazilia julie" ~ "Chlorestes julie",
                                                      Taxon == "Amazona festiva festiva" ~ "Amazona festiva",
                                                      Taxon == "Amazona mercenaria" ~ "Amazona mercenarius",
                                                      Taxon == "Amazona xanthops" ~ "Alipiopsitta xanthops",
+                                                     Taxon == "Ameerega altamazonica" ~ "Ameerega altamazonica", ## NE
+                                                     Taxon == "Ameerega maculata" ~ "Epipedobates maculatus",
                                                      Taxon == "Anas clypeata" ~ "Spatula clypeata",
                                                      Taxon == "Anas formosa" ~ "Sibirionetta formosa",
                                                      Taxon == "Anas penelope" ~ "Mareca penelope",
                                                      Taxon == "Anas querquedula" ~ "Spatula querquedula",
+                                                     Taxon == "Aonyx capensis microdon" ~ "Aonyx capensis",
+                                                     Taxon == "Aonyx cinerea" ~ "Aonyx cinereus",
                                                      Taxon == "Aquila clanga" ~ "Clanga clanga",
                                                      Taxon == "Aquila pomarina" ~ "Clanga pomarina",
                                                      Taxon == "Aratinga acuticaudata" ~ "Psittacara acuticaudatus",
@@ -46,6 +55,7 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Baillonius bailloni" ~ "Pteroglossus bailloni",
                                                      Taxon == "Barnardius barnardi" ~ "Barnardius zonarius",
                                                      Taxon == "Branta canadensis leucopareia" ~ "Branta canadensis",
+                                                     Taxon == "Boa constrictor occidentalis" ~ "Boa constrictor",
                                                      Taxon == "Bubo bubo bengalensis" ~ "Bubo bubo",
                                                      Taxon == "Buceros hydrocorax hydrocorax" ~ "Buceros hydrocorax",
                                                      Taxon == "Buteo magnirostris" ~ "Rupornis magnirostris",
@@ -54,10 +64,20 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Calyptorhynchus baudinii" ~ "Zanda baudinii",
                                                      Taxon == "Calyptorhynchus funereus" ~ "Zanda funerea",
                                                      Taxon == "Calyptorhynchus latirostris" ~ "Zanda latirostris",
+                                                     Taxon == "Callithrix melanura" ~ "Mico melanurus",
+                                                     Taxon == "Capra falconeri heptneri" ~ "Capra falconeri",
+                                                     Taxon == "Capra hircus aegagrus" ~ "Capra hircus", # wild goat (not domestic - keep)
+                                                     Taxon == "Capricornis thar" ~ "Capricornis sumatraensis",
                                                      Taxon == "Carduelis cucullata" ~ "Spinus cucullatus",
                                                      Taxon == "Carduelis yarrellii" ~ "Spinus yarrellii", 
                                                      Taxon == "Chalcopsitta sintillata" ~ "Chalcopsitta scintillata",
-                                                     Taxon == "Damophila julie" ~ "Amazilia julie",
+                                                     Taxon == "Cebus xanthosternos" ~ "Sapajus xanthosternos",
+                                                     Taxon == "Cervus elaphus barbarus" ~ "Cervus elaphus",
+                                                     Taxon == "Chlorostilbon swainsonii" ~ "Riccordia swainsonii",
+                                                     Taxon == "Colinus virginianus ridgwayi" ~ "Colinus virginianus",
+                                                     Taxon == "Crotalus durissus unicolor" ~ "Crotalus durissus",
+                                                     Taxon == "Dama dama mesopotamica" ~ "Dama mesopotamica",
+                                                     Taxon == "Damophila julie" ~ "Chlorestes julie",
                                                      Taxon == "Eos rubra" ~ "Eos bornea",
                                                      Taxon == "Eos squamata riciniata" ~ "Eos squamata",
                                                      Taxon == "Estrilda caerulescens" ~ "Estrilda coerulescens",
@@ -78,7 +98,8 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Lonchura cantans" ~ "Euodice cantans",
                                                      Taxon == "Lonchura cucullata" ~ "Spermestes cucullata",
                                                      Taxon == "Lonchura fringilloides" ~ "Spermestes fringilloides",
-                                                     Taxon == "Lophura imperialis" ~ "Lophura imperialis", ## not in this
+                                                     Taxon == "Lonchura oryzivora" ~ "Padda oryzivora",
+                                                     Taxon == "Lophura imperialis" ~ "Lophura imperialis", ## hybrid
                                                      Taxon == "Morelia boeleni" ~ "Simalia boeleni",
                                                      Taxon == "Nandayus nenday" ~ "Aratinga nenday",
                                                      Taxon == "Nigrita canicapilla" ~ "Nigrita canicapillus",
@@ -92,6 +113,7 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Paradisaea rudolphi" ~ "Paradisornis rudolphi",
                                                      Taxon == "Phoenicopterus ruber ruber" ~ "Phoenicopterus ruber",
                                                      Taxon == "Pionopsitta barrabandi" ~ "Pyrilia barrabandi",
+                                                     Taxon == "Pionopsitta caica" ~ "Pyrilia caica",
                                                      Taxon == "Pitta guajana" ~ "Hydrornis guajanus",
                                                      Taxon == "Platycercus barnardi" ~ "Barnardius zonarius",
                                                      Taxon == "Platycercus zonarius" ~ "Barnardius zonarius",
@@ -121,6 +143,7 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Serinus mozambicus" ~ "Crithagra mozambica",
                                                      Taxon == "Spizaetus africanus" ~ "Aquila africana",
                                                      Taxon == "Spizaetus nipalensis" ~ "Nisaetus nipalensis",
+                                                     Taxon == "Spizaetus cirrhatus" ~ "Nisaetus cirrhatus",
                                                      Taxon == "Spizastur melanoleucus" ~ "Spizaetus melanoleucus",
                                                      Taxon == "Streptopelia senegalensis" ~ "Spilopelia senegalensis",
                                                      Taxon == "Strix virgata" ~ "Ciccaba virgata",
@@ -151,30 +174,46 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Damaliscus pygargus pygargus" ~ "Damaliscus pygargus ssp. pygargus", ## Add manually
                                                      Taxon == "Diphyllodes magnificus" ~ "Cicinnurus magnificus",
                                                      Taxon == "Epicrates angulifer" ~ "Chilabothrus angulifer",
+                                                     Taxon == "Epicrates chrysogaster" ~ "Chilabothrus chrysogaster",
                                                      Taxon == "Epicrates cenchria cenchria" ~ "Epicrates cenchria",
                                                      Taxon == "Epicrates fordii" ~ "Chilabothrus fordii",
                                                      Taxon == "Epicrates gracilis" ~ "Chilabothrus gracilis",
+                                                     Taxon == "Epicrates inornatus" ~ "Chilabothrus inornatus",
                                                      Taxon == "Epicrates striatus" ~ "Chilabothrus striatus",
+                                                     Taxon == "Epicrates subflavus" ~ "Chilabothrus subflavus",
+                                                     Taxon == "Epipedobates bilinguis" ~ "Ameerega bilinguis",
+                                                     Taxon == "Epipedobates darwinwallacei" ~ "Epipedobates darwinwallacei", ## NE
                                                      Taxon == "Epimachus fastuosus" ~ "Epimachus fastosus",
+                                                     Taxon == "Equus przewalskii" ~ "Equus ferus",
                                                      Taxon == "Equus zebra hartmannae" ~ "Equus zebra ssp. hartmannae", ## Add manually
                                                      Taxon == "Equus zebra zebra" ~ "Equus zebra ssp. zebra", ## Add manually
                                                      Taxon == "Galago alleni" ~ "Sciurocheirus alleni",
                                                      Taxon == "Galago demidoff" ~ "Galagoides demidoff",
                                                      Taxon == "Gongylophis colubrinus" ~ "Eryx colubrinus",
+                                                     Taxon == "Gongylophis conicus" ~ "Eryx conicus",
                                                      Taxon == "Gongylophis muelleri" ~ "Eryx muelleri",
+                                                     Taxon == "Hexaprotodon liberiensis" ~ "Choeropsis liberiensis",
+                                                     Taxon == "Homopus signatus" ~ "Chersobius signatus",
+                                                     Taxon == "Hyaena brunnea" ~ "Parahyaena brunnea",
+                                                     Taxon == "Karusaurus polyzonus" ~ "Karusasaurus polyzonus",
                                                      Taxon == "Kinixys belliana" ~ "Kinixys belliana", ## NE
                                                      Taxon == "Kinixys nogueyi" ~ "Kinixys nogueyi", ## NE
                                                      Taxon == "Kinixys spekii" ~ "Kinixys spekii", ## NE
+                                                     Taxon == "Kinixys zombensis" ~ "Kinixys zombensis", ## NE
                                                      Taxon == "Lagothrix lagotricha" ~ "Lagothrix lagothricha",
+                                                     Taxon == "Lagothrix cana" ~ "Lagothrix lagothricha",
                                                      Taxon == "Leiopython hoserae" ~ "Leiopython meridionalis",
                                                      Taxon == "Manis gigantea" ~ "Smutsia gigantea",
                                                      Taxon == "Manis temminckii" ~ "Smutsia temminckii",
                                                      Taxon == "Manis tetradactyla" ~ "Phataginus tetradactyla",
                                                      Taxon == "Manis tricuspis" ~ "Phataginus tricuspis",
+                                                     Taxon == "Mauremys iversoni" ~ "Mauremys iversoni", ## hybrid
+                                                     Taxon == "Mauremys pritchardi" ~ "Mauremys reevesii",
                                                      Taxon == "Mazama temama cerasina" ~ "Mazama temama",
                                                      Taxon == "Morelia clastolepis" ~ "Simalia clastolepis",
                                                      Taxon == "Morelia nauta" ~ "Simalia nauta",
                                                      Taxon == "Morelia tracyae" ~ "Simalia tracyae",
+                                                     Taxon == "Mustela erminea ferghanae" ~ "Mustela erminea",
                                                      Taxon == "Nasua nasua solitaria" ~ "Nasua nasua",
                                                      Taxon == "Nigrita fusconota" ~ "Nigrita fusconotus",
                                                      Taxon == "Odocoileus virginianus mayensis" ~ "Odocoileus virginianus",
@@ -188,20 +227,33 @@ NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" 
                                                      Taxon == "Pelusios adansonii" ~ "Pelusios adansonii", ## NE
                                                      Taxon == "Pelusios castaneus" ~ "Pelusios castaneus", ## NE
                                                      Taxon == "Pelusios gabonensis" ~ "Pelusios gabonensis", ## NE
+                                                     Taxon == "Penelopides exarhatus" ~ "Rhabdotorrhinus exarhatus",
+                                                     Taxon == "Phelsuma andamanense" ~ "Phelsuma andamanensis",
+                                                     Taxon == "Phrynosoma cerroense" ~ "Phrynosoma cerroense", ## NE
+                                                     Taxon == "Podocnemis vogli" ~ "Podocnemis vogli", ## NE
                                                      Taxon == "Prionailurus bengalensis bengalensis" ~ "Prionailurus bengalensis",
                                                      Taxon == "Psammobates oculifer" ~ "Psammobates oculifer", ## NE
+                                                     Taxon == "Psammobates tentorius trimeni" ~ "Psammobates tentorius",
                                                      Taxon == "Ptyas mucosus" ~ "Ptyas mucosa",
                                                      Taxon == "Puma concolor couguar" ~ "Puma concolor",
                                                      Taxon == "Python reticulatus" ~ "Malayopython reticulatus",
+                                                     Taxon == "Python molurus molurus" ~ "Python molurus",
+                                                     Taxon == "Python timoriensis" ~ "Malayopython timoriensis",
                                                      Taxon == "Rupicapra pyrenaica ornata" ~ "Rupicapra pyrenaica",
                                                      Taxon == "Saguinus fuscicollis" ~ "Leontocebus fuscicollis",
                                                      Taxon == "Saguinus nigricollis" ~ "Leontocebus nigricollis",
                                                      Taxon == "Serinus gularis" ~ "Crithagra gularis",
                                                      Taxon == "Trachypithecus villosus" ~ "Trachypithecus cristatus",
+                                                     Taxon == "Tarsius syrichta" ~ "Carlito syrichta",
+                                                     Taxon == "Trimeresurus mangshanensis" ~ "Protobothrops mangshanensis",
                                                      Taxon == "Ursus americanus emmonsii" ~ "Ursus americanus",
+                                                     Taxon == "Uromastyx nigriventris" ~ "Uromastyx nigriventris", ## NE
                                                      Taxon == "Varanus ornatus" ~ "Varanus niloticus",
+                                                     Taxon == "Varanus similis" ~ "Varanus scalaris",
+                                                     Taxon == "Vipera wagneri" ~ "Montivipera wagneri",
                                                      Taxon == "Vulpes vulpes griffithi" ~ "Vulpes vulpes",
                                                      Taxon == "Vulpes vulpes montana" ~ "Vulpes vulpes",
+                                                     Taxon == "Woodworthia maculatus" ~ "Woodworthia maculata",
                                                      Taxon == "Xenochrophis piscator" ~ "Fowlea piscator",
                                                      Taxon == "Zaglossus bruijni" ~ "Zaglossus bruijnii",
                                                      TRUE ~ Taxon))
@@ -254,7 +306,7 @@ for(i in 1:nrow(NA_update)){ # would have used for(sp in speciesList) but need i
 }
 
 ## write out the the data for speed.
-write.csv(df, "Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv")  
+#write.csv(df, "Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv")  
 df <- read.csv("Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv") %>% select(-X)
 
 ## 15 NA species (this is as expected as per the totals above)
