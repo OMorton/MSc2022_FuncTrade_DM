@@ -14,6 +14,7 @@ Aves_CITES_Data <- CITESFull_ER %>% filter(Class == "Aves") %>% mutate(Subspecie
 write.csv(Reptile_CITES_Data, "Data/4_DM_Rept_ER.csv", na = "")
 write.csv(Aves_CITES_Data, "Data/4_DM_Aves_ER.csv", na = "")
 
+
 ## IR
 Reptile_CITES_Data_IR <- CITESFull_IR %>% filter(Class == "Reptilia") %>% mutate(Subspecies = ifelse(str_count(Taxon, "\\S+") > 2, "Yes", "No"))
 Aves_CITES_Data_IR <- CITESFull_IR %>% filter(Class == "Aves") %>% mutate(Subspecies = ifelse(str_count(Taxon, "\\S+") > 2, "Yes", "No"))
