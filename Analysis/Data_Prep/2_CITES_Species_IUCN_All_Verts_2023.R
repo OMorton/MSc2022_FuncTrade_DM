@@ -11,10 +11,12 @@ CITES_Vert <- data.table::fread("Data/1_Output_CITES_Raw.csv", na.strings = "")
 Sp_List <- CITES_Vert %>% group_by(Taxon) %>% tally() %>% select(Taxon) %>% as.data.frame()
 CITES_Vert %>% filter(Year > 1999) %>% group_by(Source_clean, Live) %>% summarise(n_distinct(Taxon))
 
-
+## 24 total 
 ##  1 domestic species.
+## 1 wild goat to keep
+## 2 hybirds to remove.
 ## 5 sub species specific statuses to manually add.
-## 9 never evaluated species.
+## 15 never evaluated species.
 NA_update <- Sp_List %>% mutate(IUCNName = case_when(Taxon == "Aceros cassidix" ~ "Rhyticeros cassidix",
                                                      Taxon == "Aceros corrugatus" ~"Rhabdotorrhinus corrugatus",
                                                      Taxon == "Aceros leucocephalus" ~ "Rhabdotorrhinus leucocephalus",
@@ -309,7 +311,7 @@ for(i in 1:nrow(NA_update)){ # would have used for(sp in speciesList) but need i
 #write.csv(df, "Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv")  
 df <- read.csv("Data/IUCN_API/IUCN_API_NA_ASSESSMENTS.csv") %>% select(-X)
 
-## 15 NA species (this is as expected as per the totals above)
+## 24 NA species (this is as expected as per the totals above)
 df %>% filter(is.na(Year))
 
 Ssp_code <- rbind(data.frame(Taxon = "Equus zebra zebra", IUCNName = "Equus zebra ssp. zebra", Year = c(1996, 2008, 2019), 
@@ -328,16 +330,16 @@ df <- rbind(filter(df, !IUCNName %in% c("Equus zebra ssp. zebra", "Equus zebra s
             Ssp_code)
 
 ## IUCN names will always be less than Taxon as some CITES sp/ssp resolve only to a single IUCN recognized taxon. 
-length(unique(df$IUCNName)) ## 1206
+length(unique(df$IUCNName)) ## 1819
 df_all <- left_join(NA_update, df)
-length(unique(df_all$Taxon)) ## 1227
+length(unique(df_all$Taxon)) ## 1861
 
 
 #### Cleaning pre 2000 IUCN codes ####
 ## Check the early version of the IUCN are updated prior to 2000
 ## all instance where the following codes are given species are updated again before 2000
 check <- df_all %>% group_by(Taxon) %>% filter(any(IUCN_code %in% c("CT", "NR", "K", "R", "T", "V", "E", "I", "nt", NA)))
-length(unique(df_all$Taxon)) ## 1227
+length(unique(df_all$Taxon)) ## 1861
 
 
 ## Therefore remove these
@@ -346,10 +348,11 @@ Historic_IUCN <- df_all %>%
   mutate(Year = if_else(is.na(Year), 2000, as.numeric(Year))) %>%
   filter(!IUCN_code %in% c("CT", "NR", "K", "R", "T", "V", "E", "I", "nt"))
 
-length(unique(Historic_IUCN$Taxon)) ## 1227
+length(unique(Historic_IUCN$Taxon)) ## 1861
 
 ## Only EX and EW species are a single Chelonoidis niger (in 2000) and 2 Oryx from wild sources in 2017 and 19.
-## Remove these further on.
+## Cyanopsitta spixii, Equus przewalskii, Mustela nigripes, Phelsuma gigas, Psephotus pulcherrimus
+## Keep these but flag them
 Historic_IUCN %>% filter(IUCN_code %in% c("EX", "EW"))
 
 ## Convert the 1994 system to post-2000
@@ -360,7 +363,7 @@ Historic_IUCN_up <- Historic_IUCN %>%
 
 ## Check removal and conversion left only the post 2001 framework
 unique(Historic_IUCN_up$IUCN_code)
-unique(Historic_IUCN_up$Taxon) ## 1227
+unique(Historic_IUCN_up$Taxon) ## 1861
 
 ## Backbone of values 2000 - 2020
 backbone <- expand.grid(Year = as.integer(1975:2020), Taxon = unique(Historic_IUCN_up$Taxon))
@@ -384,49 +387,39 @@ df_new <- left_join(backbone, Historic_IUCN_up) %>%
   mutate(IUCN_code = replace_na(IUCN_code, "Not assessed")) %>% distinct()
 
 ## Now we have a clean time series of all statuses for all species 1999 - 2020 (-1 - 20)
-length(unique(df_new$Taxon)) ## 1227 species
-## Tidy up and remove the 2 ex and ew sp, the hybrid and the domestic sheep.
-df_new <- df_new %>% filter(!Taxon %in% c("Chelonoidis niger", "Oryx dammah", "Ovis aries"))
-length(unique(df_new$Taxon)) ## 1224 species
+length(unique(df_new$Taxon)) ## 1861 species
+## Tidy up and remove the two hybrids and the domestic sheep.
+df_new <- df_new %>% filter(!Taxon %in% c("Lophura imperialis", "Mauremys iversoni", "Ovis aries"))
+length(unique(df_new$Taxon)) ## 1858 species
 
 ## Check no species were assessed twice in one year (2 records for 1 year interfere with the joins)
 df_new %>% group_by(Year, Taxon) %>% tally() %>% filter(n != 1)
-df_new <- df_new %>% mutate(filt = paste(Taxon, Year, IUCN_code)) %>% filter(filt !="Macaca nemestrina 20 VU")
+df_new <- df_new %>% mutate(filt = paste(Taxon, Year, IUCN_code)) %>% filter(!filt %in% c("Macaca nemestrina 20 VU", "Homopus signatus 18 VU"))
 
 #### Custom Species TimeFrames #####
 
-## Tidy up and remove the 2 ex and ew sp, the hybrid and the domestic sheep.
-CITES_Vert_Clean <- CITES_Vert %>% filter(!Taxon %in% c("Chelonoidis niger", "Oryx dammah", "Ovis aries"))
-length(unique(CITES_Vert_Clean$Taxon)) ## 1224 species
+## Tidy up and remove the two hybrids and the domestic sheep.
+CITES_Vert_Clean <- CITES_Vert %>% filter(!Taxon %in% c("Lophura imperialis", "Mauremys iversoni", "Ovis aries"))
+length(unique(CITES_Vert_Clean$Taxon)) ## 1858 species
 
 
 #### Exporter Series ####
 ## Get all trades to volumes per species per year
-CITES_Vert_pro <- CITES_Vert %>% filter(Reporter.type == "E") %>%
+CITES_Vert_pro <- CITES_Vert_Clean %>% filter(Reporter.type == "E") %>%
   ## Group and tally per species/year
-  group_by(Year, Taxon, Class, Exporter, Importer, FL_year, Year_DEL) %>% 
+  group_by(Year, Taxon, Class, Exporter, Importer, FL_year, Year_DEL, Source_clean, Live) %>% 
   tally(WOE) %>% group_by(Taxon, Class, Exporter) %>% filter(n() > 0) %>%
   ## here we remove record for species that are not cites listed and as such lack a year they were listed
   filter(!is.na(FL_year)) %>% mutate(FL_year = as.numeric(FL_year), Year_DEL = as.numeric(Year_DEL))
 
-## Create custom length time series for each species potential presence in trade
-## the series begins when the species was listed, this prevent us marking species as absent from trade in years when 
-## that species wasnt listed on the cites appendices
-## We use the FL_year to start the series (when the species was first listed) and the Year_DEL column to end it.
-## Thus creating a series corrected for each species first listing and/or its deletion from the appendices.
-## Except for the complex cases which potentially move in and out and in (and out) again of the appendices.
-Species_timeframe <- CITES_Vert_pro %>% group_by(Taxon, Class, Exporter, Importer) %>% 
-  summarise(Year = seq(from = min(FL_year), to = max(Year_DEL), length.out = max(Year_DEL) - min(FL_year) + 1))
-
-## 1007
-length(unique(Species_timeframe$Taxon))
+length(unique(CITES_Vert_pro$Taxon)) ## 1669 ER
 
 ## We automate the process but at this point we checked all species that our code produced as being listed then
 ## removed. We manually read the the historic cites listings for each species.
-Manual_check <- Species_timeframe %>% group_by(Taxon) %>% filter(Year == max(Year)) %>% filter(Year != 2020)
+Manual_check <- CITES_Vert_pro %>% group_by(Taxon) %>% filter(Year == max(Year)) %>% filter(Year != 2020)
 
 ## Get the complex cases
-Historic_CITES <- data.table::fread("Data/CITES/History_of_CITES_Listings_2021.csv") %>% 
+Historic_CITES <- data.table::fread("Data/History_of_CITES_Listings_2021.csv") %>% 
   mutate(Year = format(as.Date(EffectiveAt, format="%d/%m/%Y"),"%Y"))
 Complex_series <- rbind((filter(Historic_CITES, ChangeType == "DELETION" & IsCurrent == "TRUE") %>%
                            select(Year, FullName, ChangeType)), (filter(Historic_CITES, IsCurrent == "TRUE" & ChangeType == "ADDITION") %>%
@@ -434,34 +427,55 @@ Complex_series <- rbind((filter(Historic_CITES, ChangeType == "DELETION" & IsCur
   group_by(FullName) %>% filter(n() > 1) %>% filter(n_distinct(ChangeType) > 1)
 
 Complex_series_SP <- unique(Complex_series$FullName)
-CXSP <- Species_timeframe %>% filter(Taxon %in% Complex_series_SP) %>% summarise(Taxon = unique(Taxon))
+CXSP <- CITES_Vert_pro %>% filter(Taxon %in% Complex_series_SP) %>% summarise(Taxon = unique(Taxon))
 unique(CXSP$Taxon)
 
-## Complex cases - 2 species with "TRUE" Additions and Deletions in our final dataset
-## Dendrocygna autumnalis - CITES listed since 1975 in App III briefly moved out in 85, added back in 87. 
-## Dendrocygna bicolor - CITES listed since 1975 in App III briefly moved out in 85, added back in 87.
+## Replace these species with the correct time series dates
+## Note Trionyx triunguis is listed remvoed then readded so we will add this manually
+CITES_Vert_pro <- CITES_Vert_pro %>% mutate(FL_year = case_when(Taxon == "Anas formosa" ~ 1975,
+                                              Taxon == "Batagur borneoensis" ~ 1975,
+                                              Taxon == "Dendrocygna autumnalis" ~ 1975,
+                                              Taxon == "Dendrocygna bicolor" ~ 1975,
+                                              Taxon == "Hyaena hyaena" ~ 2014,
+                                              Taxon == "Mellivora capensis" ~ 1976,
+                                              TRUE ~ FL_year),
+                          Year_DEL = case_when(Taxon == "Anas formosa" ~ 2020,
+                                               Taxon == "Batagur borneoensis" ~ 2020,
+                                               Taxon == "Dendrocygna autumnalis" ~ 2020,
+                                               Taxon == "Dendrocygna bicolor" ~ 2020,
+                                               Taxon == "Hyaena hyaena" ~ 2020,
+                                               Taxon == "Mellivora capensis" ~ 2020,
+                                               TRUE ~ Year_DEL))
 
-## Actions on complex cases - all species are still cites listed throughout our study period except trionyx which was briefly not. 
-Complex_Species_timeframe <- rbind(expand.grid(Taxon = "Dendrocygna autumnalis", Year = c(1975:2020)),
-                                   expand.grid(Taxon = "Dendrocygna bicolor", Year = c(1975:2020)),
-                                   expand.grid(Taxon = "Batagur borneoensis", Year = c(1997:2020)),
-                                   expand.grid(Taxon = "Mellivora capensis", Year = c(1976:2020)),
-                                   expand.grid(Taxon = "Trionyx triunguis", Year = c(1976:2007, 2017:2020)))
+## Make time frame
+Species_timeframe_base <- CITES_Vert_pro %>% group_by(Taxon, Class, Exporter, Importer) %>% 
+  summarise(Year = seq(from = min(FL_year), to = max(Year_DEL), length.out = max(Year_DEL) - min(FL_year) + 1))
 
-Complex_fix <- full_join(Complex_Species_timeframe, CXSP)
-Species_timeframe_full <- rbind(filter(Species_timeframe, !Taxon %in% c("Batagur borneoensis", "Dendrocygna autumnalis", "Dendrocygna bicolor",
-                                                                        "Mellivora capensis", "Trionyx triunguis")),Complex_fix) %>% filter(Year > 1999)
+Species_timeframe <- rbind(mutate(Species_timeframe_base, Source_clean = "Wild", Live = "Live"),
+                           mutate(Species_timeframe_base, Source_clean = "Captive", Live = "Live"),
+                           mutate(Species_timeframe_base, Source_clean = "Wild", Live = "Not live"),
+                           mutate(Species_timeframe_base, Source_clean = "Captive", Live = "Not live"))
+## Make correct TT one
+TT_sp <- Species_timeframe %>% filter(Taxon == "Trionyx triunguis") %>% group_by(Taxon, Class, Exporter, Importer, Source_clean, Live) %>% tally() %>% select(-n)
+TS_sp <- data.frame(Taxon = "Trionyx triunguis", Year = c(1976:2007, 2017:2020))         
+TT_correct <- full_join(TT_sp, TS_sp)
 
-## 1006 sp
+Species_timeframe_full <- rbind(filter(Species_timeframe, Taxon != "Trionyx triunguis"), TT_correct) %>% 
+  filter(Year > 1999)
+
+
+## 1668
 length(unique(Species_timeframe_full$Taxon))
-## 1007 lose one species Hippotragus equinus as it was traded when it wasnt listed.
+## 1669 
 length(unique(CITES_Vert_pro$Taxon))
+## Only the one species lost Hippotragus equinus that was never traded when listed
+CITES_Vert_pro %>% ungroup() %>% distinct(Taxon) %>% filter(!Taxon %in% unique(Species_timeframe_full$Taxon))
 
 
-## Expand the data set to fill missing years between 2000 - 2018
-CITES_Wild_Com_Exp <- left_join(Species_timeframe_full, CITES_Vert_pro, by = c("Taxon", "Exporter", "Importer", "Year", "Class"))
+## Expand the data set to fill missing years between 2000 - 2020
+CITES_Wild_Com_Exp <- left_join(Species_timeframe_full, CITES_Vert_pro, by = c("Taxon", "Class", "Year", "Exporter", "Importer", "Source_clean", "Live"))
 
-## 1006
+## 1668
 length(unique(CITES_Wild_Com_Exp$Taxon))
 
 ## For 2000 - 2018 when the species are listed and present in the appendices, by our species specific time series,
@@ -477,9 +491,9 @@ CITES_Vert_Series <- left_join(CITES_Com, df_new, by = c("Year", "Taxon")) %>%
   mutate(Name_for_CITESdb = Taxon,
          Name_for_rl_history = if_else(is.na(IUCNName), Taxon, IUCNName))
 
-length(unique(CITES_Vert_Series$Name_for_CITESdb)) ## now 1006
-length(unique(CITES_Vert_Series$Name_for_rl_history)) ## now 996
-length(unique(CITES_Vert_Series$Taxon)) ## now 1006
+length(unique(CITES_Vert_Series$Name_for_CITESdb)) ## now 1668
+length(unique(CITES_Vert_Series$Name_for_rl_history)) ## now 1641
+length(unique(CITES_Vert_Series$Taxon)) ## now 1668
 
 
 ## This code prepares the two versions of IUCN assessments.
@@ -494,6 +508,7 @@ CITES_IUCN_data <- CITES_Vert_Series %>%
                                  IUCN_code == "EN" ~ "Threatened",
                                  IUCN_code == "CR" ~ "Threatened",
                                  IUCN_code == "EW" ~ "Threatened",
+                                 IUCN_code == "EX" ~ "Extinct",
                                  IUCN_code == "Not assessed" ~ "Not assessed",
                                  IUCN_code == "DD" ~ "Not assessed",
                                  TRUE ~ "ERROR"))
@@ -501,40 +516,31 @@ CITES_IUCN_data <- CITES_Vert_Series %>%
 CITES_IUCN_data %>% group_by(IUCN_code) %>% tally()
 CITES_IUCN_data %>% group_by(Threat_code) %>% tally()
 
-length(unique(CITES_IUCN_data$Name_for_rl_history)) ## 996
-length(unique(CITES_IUCN_data$Name_for_CITESdb)) ## 1006
+length(unique(CITES_IUCN_data$Name_for_rl_history)) ## 1641
+length(unique(CITES_IUCN_data$Name_for_CITESdb)) ## 1668
 
 ## Write this data into a csv to be read into subsequent analysis to save time.
-write.csv(CITES_IUCN_data, "Data/All_Vertebrates/CITES_Vert_Exp_Reported.csv", na = "")
+write.csv(CITES_IUCN_data, "Data/2_CITES_Vert_Exp_Reported.csv", na = "")
+write_rds(CITES_IUCN_data, "Data/2_CITES_Vert_Exp_Reported.rds")
 
 
 #### Importer Series ####
 ## Get all trades to volumes per species per year
 CITES_Vert_pro_I <- CITES_Vert %>% filter(Reporter.type == "I") %>%
   ## Group and tally per species/year
-  group_by(Year, Taxon, Class, Exporter, Importer, FL_year, Year_DEL) %>% 
+  group_by(Year, Taxon, Class, Exporter, Importer, FL_year, Year_DEL, Source_clean, Live) %>% 
   tally(WOE) %>% group_by(Taxon, Class, Exporter) %>% filter(n() > 0) %>%
   ## here we remove record for species that are not cites listed and as such lack a year they were listed
   filter(!is.na(FL_year)) %>% mutate(FL_year = as.numeric(FL_year), Year_DEL = as.numeric(Year_DEL))
 
-## Create custom length time series for each species potential presence in trade
-## the series begins when the species was listed, this prevent us marking species as absent from trade in years when 
-## that species wasnt listed on the cites appendices
-## We use the FL_year to start the series (when the species was first listed) and the Year_DEL column to end it.
-## Thus creating a series corrected for each species first listing and/or its deletion from the appendices.
-## Except for the complex cases which potentially move in and out and in (and out) again of the appendices.
-Species_timeframe_I <- CITES_Vert_pro_I %>% group_by(Taxon, Class, Exporter, Importer) %>% 
-  summarise(Year = seq(from = min(FL_year), to = max(Year_DEL), length.out = max(Year_DEL) - min(FL_year) + 1))
-
-## 1071
-length(unique(Species_timeframe_I$Taxon))
+length(unique(CITES_Vert_pro_I$Taxon)) ## 1679 IR
 
 ## We automate the process but at this point we checked all species that our code produced as being listed then
 ## removed. We manually read the the historic cites listings for each species.
-Manual_check_I <- Species_timeframe_I %>% group_by(Taxon) %>% filter(Year == max(Year)) %>% filter(Year != 2020)
+Manual_check <- CITES_Vert_pro_I %>% group_by(Taxon) %>% filter(Year == max(Year)) %>% filter(Year != 2020)
 
 ## Get the complex cases
-Historic_CITES <- data.table::fread("Data/CITES/History_of_CITES_Listings_2021.csv") %>% 
+Historic_CITES <- data.table::fread("Data/History_of_CITES_Listings_2021.csv") %>% 
   mutate(Year = format(as.Date(EffectiveAt, format="%d/%m/%Y"),"%Y"))
 Complex_series <- rbind((filter(Historic_CITES, ChangeType == "DELETION" & IsCurrent == "TRUE") %>%
                            select(Year, FullName, ChangeType)), (filter(Historic_CITES, IsCurrent == "TRUE" & ChangeType == "ADDITION") %>%
@@ -542,35 +548,54 @@ Complex_series <- rbind((filter(Historic_CITES, ChangeType == "DELETION" & IsCur
   group_by(FullName) %>% filter(n() > 1) %>% filter(n_distinct(ChangeType) > 1)
 
 Complex_series_SP <- unique(Complex_series$FullName)
-CXSP_I <- Species_timeframe_I %>% filter(Taxon %in% Complex_series_SP) %>% summarise(Taxon = unique(Taxon))
-unique(CXSP_I$Taxon)
+CXSP <- CITES_Vert_pro_I %>% filter(Taxon %in% Complex_series_SP) %>% summarise(Taxon = unique(Taxon))
+unique(CXSP$Taxon)
 
-## Complex cases - 2 species with "TRUE" Additions and Deletions in our final dataset
-## Dendrocygna autumnalis - CITES listed since 1975 in App III briefly moved out in 85, added back in 87. 
-## Dendrocygna bicolor - CITES listed since 1975 in App III briefly moved out in 85, added back in 87.
+## Replace these species with the correct time series dates
+## Note Trionyx triunguis is listed remvoed then readded so we will add this manually
+CITES_Vert_pro_I <- CITES_Vert_pro_I %>% mutate(FL_year = case_when(Taxon == "Anas formosa" ~ 1975,
+                                                                Taxon == "Batagur borneoensis" ~ 1975,
+                                                                Taxon == "Batagur dhongoka" ~ 2003,
+                                                                Taxon == "Dendrocygna autumnalis" ~ 1975,
+                                                                Taxon == "Dendrocygna bicolor" ~ 1975,
+                                                                Taxon == "Hyaena hyaena" ~ 2014,
+                                                                Taxon == "Mellivora capensis" ~ 1976,
+                                                                TRUE ~ FL_year),
+                                            Year_DEL = case_when(Taxon == "Anas formosa" ~ 2020,
+                                                                 Taxon == "Batagur borneoensis" ~ 2020,
+                                                                 Taxon == "Batagur dhongoka" ~ 2020,
+                                                                 Taxon == "Dendrocygna autumnalis" ~ 2020,
+                                                                 Taxon == "Dendrocygna bicolor" ~ 2020,
+                                                                 Taxon == "Hyaena hyaena" ~ 2020,
+                                                                 Taxon == "Mellivora capensis" ~ 2020,
+                                                                 TRUE ~ Year_DEL))
 
-## Actions on complex cases - all species are still cites listed throughout our study period except trionyx which was briefly not. 
-Complex_Species_timeframe_I <- rbind(expand.grid(Taxon = "Dendrocygna autumnalis", Year = c(1975:2020)),
-                                     expand.grid(Taxon = "Dendrocygna bicolor", Year = c(1975:2020)),
-                                     expand.grid(Taxon = "Batagur borneoensis", Year = c(1997:2020)),
-                                     expand.grid(Taxon = "Mellivora capensis", Year = c(1976:2020)),
-                                     expand.grid(Taxon = "Trionyx triunguis", Year = c(1976:2007, 2017:2020)))
+## Make time frame
+Species_timeframe_base_I <- CITES_Vert_pro_I %>% group_by(Taxon, Class, Exporter, Importer) %>% 
+  summarise(Year = seq(from = min(FL_year), to = max(Year_DEL), length.out = max(Year_DEL) - min(FL_year) + 1))
 
-Complex_fix_I <- full_join(Complex_Species_timeframe_I, CXSP_I)
-Species_timeframe_full_I <- rbind(filter(Species_timeframe_I, !Taxon %in% c("Batagur borneoensis", "Dendrocygna autumnalis", "Dendrocygna bicolor",
-                                                                            "Mellivora capensis", "Trionyx triunguis")),
-                                  Complex_fix_I) %>% filter(Year > 1999)
+Species_timeframe_I <- rbind(mutate(Species_timeframe_base_I, Source_clean = "Wild", Live = "Live"),
+                           mutate(Species_timeframe_base_I, Source_clean = "Captive", Live = "Live"),
+                           mutate(Species_timeframe_base_I, Source_clean = "Wild", Live = "Not live"),
+                           mutate(Species_timeframe_base_I, Source_clean = "Captive", Live = "Not live"))
+## Make correct TT one
+TT_sp <- Species_timeframe_I %>% filter(Taxon == "Trionyx triunguis") %>% group_by(Taxon, Class, Exporter, Importer, Source_clean, Live) %>% tally() %>% select(-n)
+TS_sp <- data.frame(Taxon = "Trionyx triunguis", Year = c(1976:2007, 2017:2020))         
+TT_correct <- full_join(TT_sp, TS_sp)
 
-## 1071 sp
+Species_timeframe_full_I <- rbind(filter(Species_timeframe_I, Taxon != "Trionyx triunguis"), TT_correct) %>% 
+  filter(Year > 1999)
+
+
+## 1679
 length(unique(Species_timeframe_full_I$Taxon))
-## 1071 lose one species Hippotragus equinus as it was traded when it wasnt listed.
+## 1679 
 length(unique(CITES_Vert_pro_I$Taxon))
 
-
 ## Expand the data set to fill missing years between 2000 - 2018
-CITES_Wild_Com_Imp <- left_join(Species_timeframe_full_I, CITES_Vert_pro_I, by = c("Taxon", "Exporter", "Importer", "Year", "Class"))
+CITES_Wild_Com_Imp <- left_join(Species_timeframe_full_I, CITES_Vert_pro_I, by = c("Taxon", "Class", "Year", "Exporter", "Importer", "Source_clean", "Live"))
 
-## 1071
+## 1679
 length(unique(CITES_Wild_Com_Imp$Taxon))
 
 ## For 2000 - 2018 when the species are listed and present in the appendices, by our species specific time series,
@@ -586,9 +611,9 @@ CITES_Vert_Series_I <- left_join(CITES_Com_I, df_new, by = c("Year", "Taxon")) %
   mutate(Name_for_CITESdb = Taxon,
          Name_for_rl_history = if_else(is.na(IUCNName), Taxon, IUCNName))
 
-length(unique(CITES_Vert_Series_I$Name_for_CITESdb)) ## now 1071
-length(unique(CITES_Vert_Series_I$Name_for_rl_history)) ## now 1055
-length(unique(CITES_Vert_Series_I$Taxon)) ## now 1071
+length(unique(CITES_Vert_Series_I$Name_for_CITESdb)) ## now 1679
+length(unique(CITES_Vert_Series_I$Name_for_rl_history)) ## now 1653
+length(unique(CITES_Vert_Series_I$Taxon)) ## now 1679
 
 
 ## This code prepares the two versions of IUCN assessments.
@@ -603,6 +628,7 @@ CITES_IUCN_data_I <- CITES_Vert_Series_I %>%
                                  IUCN_code == "EN" ~ "Threatened",
                                  IUCN_code == "CR" ~ "Threatened",
                                  IUCN_code == "EW" ~ "Threatened",
+                                 IUCN_code == "EX" ~ "Extinct",
                                  IUCN_code == "Not assessed" ~ "Not assessed",
                                  IUCN_code == "DD" ~ "Not assessed",
                                  TRUE ~ "ERROR"))
@@ -610,8 +636,9 @@ CITES_IUCN_data_I <- CITES_Vert_Series_I %>%
 CITES_IUCN_data_I %>% group_by(IUCN_code) %>% tally()
 CITES_IUCN_data_I %>% group_by(Threat_code) %>% tally()
 
-length(unique(CITES_IUCN_data_I$Name_for_rl_history)) ## 1055
-length(unique(CITES_IUCN_data_I$Name_for_CITESdb)) ## 1071
+length(unique(CITES_IUCN_data_I$Name_for_rl_history)) ## 1653
+length(unique(CITES_IUCN_data_I$Name_for_CITESdb)) ## 1679
 
 ## Write this data into a csv to be read into subsequent analysis to save time.
-write.csv(CITES_IUCN_data_I, "Data/All_Vertebrates/CITES_Vert_Imp_Reported.csv", na = "")
+write.csv(CITES_IUCN_data_I, "Data/2_CITES_Vert_Imp_Reported.csv", na = "")
+write_rds(CITES_IUCN_data_I, "Data/2_CITES_Vert_Imp_Reported.rds")
