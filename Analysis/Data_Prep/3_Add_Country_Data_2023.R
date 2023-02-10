@@ -41,7 +41,7 @@ Check2 <- CITES_Countries_ER %>% unite("Check", c(4,6), remove = FALSE) %>% filt
 CITES_Countries_ER_Final <- CITES_Countries_ER %>% unite("Check", c(4,6), remove = FALSE) %>% filter(Check %in% NLP_dat$Check) %>% select(-Check, - filt)
 
 write.csv(CITES_Countries_ER_Final, "Data/3_CITES_Vert_dat_ER.csv", na = "")
-write_rds(CITES_Countries_ER_Final, "Data/3_CITES_Vert_dat_ER.csv")
+write_rds(CITES_Countries_ER_Final, "Data/3_CITES_Vert_dat_ER.rds")
 
 
 
@@ -66,4 +66,4 @@ Check2 <- CITES_Countries_IR %>% unite("Check", c(5,6), remove = FALSE) %>% filt
 CITES_Countries_IR_Final <- CITES_Countries_IR %>% unite("Check", c(4,6), remove = FALSE) %>% filter(Check %in% NLP_dat$Check) %>% select(-Check, - filt)
 
 write.csv(CITES_Countries_IR_Final, "Data/3_CITES_Vert_dat_IR.csv", na = "")
-write_rds(CITES_Countries_IR_Final, "Data/3_CITES_Vert_dat_IR.csv")
+write_rds(CITES_Countries_IR_Final, "Data/3_CITES_Vert_dat_IR.rds")
